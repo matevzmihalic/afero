@@ -110,6 +110,7 @@ type Writer interface {
 	SetCRC32C(uint32) // Sets both CRC32C and SendCRC32C.
 	CloseWithError(err error) error
 	Attrs() *storage.ObjectAttrs
+	SetCompress()
 
 	embedToIncludeNewMethods()
 }

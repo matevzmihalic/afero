@@ -38,6 +38,7 @@ type Fs struct {
 	ctx       context.Context
 	client    stiface.Client
 	separator string
+	compress  bool
 
 	buckets       map[string]stiface.BucketHandle
 	rawGcsObjects map[string]*GcsFile
@@ -45,15 +46,16 @@ type Fs struct {
 	autoRemoveEmptyFolders bool // trigger for creating "virtual folders" (not required by GCSs)
 }
 
-func NewGcsFs(ctx context.Context, client stiface.Client) *Fs {
-	return NewGcsFsWithSeparator(ctx, client, "/")
+func NewGcsFs(ctx context.Context, client stiface.Client, compress bool) *Fs {
+	return NewGcsFsWithSeparator(ctx, client, "/", compress)
 }
 
-func NewGcsFsWithSeparator(ctx context.Context, client stiface.Client, folderSep string) *Fs {
+func NewGcsFsWithSeparator(ctx context.Context, client stiface.Client, folderSep string, compress bool) *Fs {
 	return &Fs{
 		ctx:           ctx,
 		client:        client,
 		separator:     folderSep,
+		compress:      compress,
 		rawGcsObjects: make(map[string]*GcsFile),
 
 		autoRemoveEmptyFolders: true,

@@ -122,7 +122,7 @@ func TestMain(m *testing.M) {
 	mockClient := newClientMock()
 	mockClient.Client = client
 
-	gcsAfs = &afero.Afero{Fs: &GcsFs{NewGcsFs(ctx, mockClient)}}
+	gcsAfs = &afero.Afero{Fs: &GcsFs{NewGcsFs(ctx, mockClient, false)}}
 
 	// Uncomment to use the real, not mocked, client
 	// gcsAfs = &Afero{Fs: &GcsFs{gcsfs.NewGcsFs(ctx, client)}}

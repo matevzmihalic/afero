@@ -35,7 +35,7 @@ type GcsFs struct {
 // NewGcsFS creates a GCS file system, automatically instantiating and decorating the storage client.
 // You can provide additional options to be passed to the client creation, as per
 // cloud.google.com/go/storage documentation
-func NewGcsFS(ctx context.Context, opts ...option.ClientOption) (afero.Fs, error) {
+func NewGcsFS(ctx context.Context, compress bool, opts ...option.ClientOption) (afero.Fs, error) {
 	if json := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"); json != "" {
 		opts = append(opts, option.WithCredentialsJSON([]byte(json)))
 	}
@@ -44,13 +44,14 @@ func NewGcsFS(ctx context.Context, opts ...option.ClientOption) (afero.Fs, error
 		return nil, err
 	}
 
-	return NewGcsFSFromClient(ctx, client)
+	return NewGcsFSFromClient(ctx, client, compress)
 }
 
 // NewGcsFSWithSeparator is the same as NewGcsFS, but the files system will use the provided folder separator.
 func NewGcsFSWithSeparator(
 	ctx context.Context,
 	folderSeparator string,
+	compress bool,
 	opts ...option.ClientOption,
 ) (afero.Fs, error) {
 	client, err := storage.NewClient(ctx, opts...)
@@ -58,14 +59,14 @@ func NewGcsFSWithSeparator(
 		return nil, err
 	}
 
-	return NewGcsFSFromClientWithSeparator(ctx, client, folderSeparator)
+	return NewGcsFSFromClientWithSeparator(ctx, client, folderSeparator, compress)
 }
 
 // NewGcsFSFromClient creates a GCS file system from a given storage client
-func NewGcsFSFromClient(ctx context.Context, client *storage.Client) (afero.Fs, error) {
+func NewGcsFSFromClient(ctx context.Context, client *storage.Client, compress bool) (afero.Fs, error) {
 	c := stiface.AdaptClient(client)
 
-	return &GcsFs{NewGcsFs(ctx, c)}, nil
+	return &GcsFs{NewGcsFs(ctx, c, compress)}, nil
 }
 
 // NewGcsFSFromClientWithSeparator is the same as NewGcsFSFromClient, but the file system will use the provided folder separator.
@@ -73,10 +74,11 @@ func NewGcsFSFromClientWithSeparator(
 	ctx context.Context,
 	client *storage.Client,
 	folderSeparator string,
+	compress bool,
 ) (afero.Fs, error) {
 	c := stiface.AdaptClient(client)
 
-	return &GcsFs{NewGcsFsWithSeparator(ctx, c, folderSeparator)}, nil
+	return &GcsFs{NewGcsFsWithSeparator(ctx, c, folderSeparator, compress)}, nil
 }
 
 // Wraps gcs.GcsFs and convert some return types to afero interfaces.

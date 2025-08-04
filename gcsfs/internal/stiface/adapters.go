@@ -15,7 +15,10 @@
 package stiface
 
 import (
+	"compress/gzip"
 	"context"
+	"mime"
+	"path/filepath"
 
 	"cloud.google.com/go/storage"
 )
@@ -33,10 +36,13 @@ type (
 	bucketIterator struct{ *storage.BucketIterator }
 	objectIterator struct{ *storage.ObjectIterator }
 	reader         struct{ *storage.Reader }
-	writer         struct{ *storage.Writer }
-	copier         struct{ *storage.Copier }
-	composer       struct{ *storage.Composer }
-	aclHandle      struct{ *storage.ACLHandle }
+	writer         struct {
+		*storage.Writer
+		gzw *gzip.Writer
+	}
+	copier    struct{ *storage.Copier }
+	composer  struct{ *storage.Composer }
+	aclHandle struct{ *storage.ACLHandle }
 )
 
 func (client) embedToIncludeNewMethods()         {}
@@ -44,7 +50,7 @@ func (bucketHandle) embedToIncludeNewMethods()   {}
 func (objectHandle) embedToIncludeNewMethods()   {}
 func (bucketIterator) embedToIncludeNewMethods() {}
 func (objectIterator) embedToIncludeNewMethods() {}
-func (writer) embedToIncludeNewMethods()         {}
+func (*writer) embedToIncludeNewMethods()        {}
 func (reader) embedToIncludeNewMethods()         {}
 func (copier) embedToIncludeNewMethods()         {}
 func (composer) embedToIncludeNewMethods()       {}
@@ -123,7 +129,7 @@ func (o objectHandle) NewRangeReader(ctx context.Context, offset, length int64) 
 }
 
 func (o objectHandle) NewWriter(ctx context.Context) Writer {
-	return writer{o.ObjectHandle.NewWriter(ctx)}
+	return &writer{o.ObjectHandle.NewWriter(ctx), nil}
 }
 
 func (o objectHandle) CopierFrom(src ObjectHandle) Copier {
@@ -138,21 +144,44 @@ func (o objectHandle) ComposerFrom(srcs ...ObjectHandle) Composer {
 	return composer{o.ObjectHandle.ComposerFrom(objs...)}
 }
 
-func (w writer) ObjectAttrs() *storage.ObjectAttrs {
+func (w *writer) ObjectAttrs() *storage.ObjectAttrs {
 	return &w.Writer.ObjectAttrs
 }
 
-func (w writer) SetChunkSize(s int) {
+func (w *writer) SetChunkSize(s int) {
 	w.ChunkSize = s
 }
 
-func (w writer) SetProgressFunc(f func(int64)) {
+func (w *writer) SetProgressFunc(f func(int64)) {
 	w.ProgressFunc = f
 }
 
-func (w writer) SetCRC32C(c uint32) {
+func (w *writer) SetCRC32C(c uint32) {
 	w.CRC32C = c
 	w.SendCRC32C = true
+}
+
+func (w *writer) SetCompress() {
+	w.ContentEncoding = "gzip"
+	w.ContentType = mime.TypeByExtension(filepath.Ext(w.Name))
+	w.gzw = gzip.NewWriter(w.Writer)
+}
+
+func (w *writer) Write(b []byte) (int, error) {
+	if w.gzw != nil {
+		return w.gzw.Write(b)
+	}
+	return w.Writer.Write(b)
+}
+
+func (w *writer) Close() error {
+	if w.gzw != nil {
+		err := w.gzw.Close()
+		if err != nil {
+			return err
+		}
+	}
+	return w.Writer.Close()
 }
 
 func (c copier) ObjectAttrs() *storage.ObjectAttrs {

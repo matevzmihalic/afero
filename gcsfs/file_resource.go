@@ -174,6 +174,9 @@ func (o *gcsFileResource) WriteAt(b []byte, off int64) (n int, err error) {
 	}
 
 	w := o.obj.NewWriter(o.ctx)
+	if o.fs.compress {
+		w.SetCompress()
+	}
 	// TRIGGER WARNING: This can seem like a hack but it works thanks
 	// to GCS strong consistency. We will open and write to the same file; First when the
 	// writer is closed will the content get committed to GCS.
