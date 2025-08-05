@@ -69,6 +69,10 @@ type objectMock struct {
 	fs   afero.Fs
 }
 
+func (o *objectMock) If(storage.Conditions) stiface.ObjectHandle {
+	return o
+}
+
 func (o *objectMock) NewWriter(_ context.Context) stiface.Writer {
 	return &writerMock{name: o.name, fs: o.fs}
 }

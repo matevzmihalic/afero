@@ -19,13 +19,16 @@ package gcsfs
 import (
 	"context"
 	"errors"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/spf13/afero/gcsfs/internal/stiface"
+	"google.golang.org/api/googleapi"
 )
 
 const (
@@ -178,8 +181,16 @@ func (fs *Fs) Mkdir(name string, _ os.FileMode) error {
 	if err != nil {
 		return err
 	}
-	w := obj.NewWriter(fs.ctx)
-	return w.Close()
+	w := obj.If(storage.Conditions{DoesNotExist: true}).NewWriter(fs.ctx)
+	err = w.Close()
+	if err != nil {
+		var ee *googleapi.Error
+		if errors.As(err, &ee) && ee.Code == http.StatusPreconditionFailed {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 func (fs *Fs) MkdirAll(path string, perm os.FileMode) error {
