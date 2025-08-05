@@ -267,6 +267,10 @@ func (fs *Fs) OpenFile(name string, flag int, fileMode os.FileMode) (*GcsFile, e
 	if flag&os.O_TRUNC != 0 {
 		err = file.resource.obj.Delete(fs.ctx)
 		if err != nil {
+			var ee *googleapi.Error
+			if errors.As(err, &ee) && ee.Code == http.StatusNotFound {
+				return fs.Create(name)
+			}
 			return nil, err
 		}
 		return fs.Create(name)
