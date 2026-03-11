@@ -29,7 +29,7 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
 
-	"github.com/spf13/afero/gcsfs/internal/stiface"
+	"github.com/visionect/afero/gcsfs/internal/stiface"
 )
 
 // GcsFs is the Afero version adapted for GCS
@@ -46,7 +46,7 @@ func NewGcsFile(
 	fs *Fs,
 	obj stiface.ObjectHandle,
 	openFlags int,
-	// Unused: there is no use to the file mode in GCloud just yet - but we keep it here, just in case we need it
+// Unused: there is no use to the file mode in GCloud just yet - but we keep it here, just in case we need it
 	fileMode os.FileMode,
 	name string,
 ) *GcsFile {
@@ -251,9 +251,9 @@ func (o *GcsFile) readdirImpl(count int) ([]*FileInfo, error) {
 		// But it would then have files coming before folders - that's not what we want to have exactly,
 		// since it makes the results unpredictable. Hence, we iterate all the objects and then do
 		// the cut-off in a higher level method
-		//if count > 0 && len(res) >= count {
+		// if count > 0 && len(res) >= count {
 		//	break
-		//}
+		// }
 	}
 	// return res, nil
 }

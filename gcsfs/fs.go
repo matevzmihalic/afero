@@ -26,7 +26,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/spf13/afero/gcsfs/internal/stiface"
+	"github.com/visionect/afero/gcsfs/internal/stiface"
 )
 
 const (
