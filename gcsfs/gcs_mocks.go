@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/afero"
 	"google.golang.org/api/iterator"
 
-	"github.com/spf13/afero/gcsfs/internal/stiface"
+	"github.com/visionect/afero/gcsfs/internal/stiface"
 )
 
 // sets filesystem separators to the one, expected (and hard-coded) in the tests

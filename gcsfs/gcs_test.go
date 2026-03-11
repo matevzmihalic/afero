@@ -21,7 +21,7 @@ import (
 	"golang.org/x/oauth2/google"
 
 	"github.com/spf13/afero"
-	"github.com/spf13/afero/gcsfs/internal/stiface"
+	"github.com/visionect/afero/gcsfs/internal/stiface"
 )
 
 const (

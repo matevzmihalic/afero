@@ -25,7 +25,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/spf13/afero"
-	"github.com/spf13/afero/gcsfs/internal/stiface"
+	"github.com/visionect/afero/gcsfs/internal/stiface"
 )
 
 type GcsFs struct {
